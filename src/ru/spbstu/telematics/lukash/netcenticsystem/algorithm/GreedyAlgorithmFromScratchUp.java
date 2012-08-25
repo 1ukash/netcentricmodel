@@ -13,14 +13,12 @@ public class GreedyAlgorithmFromScratchUp implements ConnectionDistributor {
    * Distributes connections using greedy algorithm, connections sorted from small to big capacity
    */
   @Override
-  public long distribute(SortedSet<TVC> connectionsSortedUp, SortedSet<TVC> connectionsSortedDown, Firewall[] firewalls, TVC newCon) {
-    return distribute(connectionsSortedUp, firewalls, newCon);
+  public double distribute(SortedSet<TVC> connectionsSortedUp, SortedSet<TVC> connectionsSortedDown, TVC newCon) {
+    return distribute(connectionsSortedUp, newCon);
   }
   
-  protected long distribute(SortedSet<TVC> connections, Firewall[] firewalls, TVC newCon) {
-    long t = System.currentTimeMillis();
-    
-    for (TVC c : connections) {
+  protected double distribute(SortedSet<TVC> somehowSortedConnections, TVC newCon) {
+    for (TVC c : somehowSortedConnections) {
       Firewall min = null;
       int i;
       //select first appropriate
@@ -39,7 +37,7 @@ public class GreedyAlgorithmFromScratchUp implements ConnectionDistributor {
       }
       min.manageConnection(c);
     }
-    return System.currentTimeMillis() - t;
+    return Firewall.dispersion();
   }
 
   @Override

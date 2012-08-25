@@ -11,8 +11,7 @@ public class RandomDistributor implements ConnectionDistributor {
   private static final String NAME = "random algorithm";
 
   @Override
-  public long distribute(SortedSet<TVC> connectionsSortedUp, SortedSet<TVC> connectionsSortedDown, Firewall[] firewalls, TVC newCon) {
-    long start = System.currentTimeMillis();
+  public double distribute(SortedSet<TVC> connectionsSortedUp, SortedSet<TVC> connectionsSortedDown, TVC newCon) {
     Random r = new Random();
     // forget about all links and redistribute connections from scratch
     for (TVC c : connectionsSortedUp) {
@@ -20,7 +19,7 @@ public class RandomDistributor implements ConnectionDistributor {
       firewalls[managerFirewallId].manageConnection(c);
     }
     
-    return System.currentTimeMillis() - start;
+    return Firewall.dispersion();
   }
 
   @Override

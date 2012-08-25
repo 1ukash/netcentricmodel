@@ -2,10 +2,14 @@ package ru.spbstu.telematics.lukash.netcenticsystem.algorithm;
 
 import java.util.SortedSet;
 
+import ru.spbstu.telematics.lukash.netcenticsystem.World;
 import ru.spbstu.telematics.lukash.netcenticsystem.model.Firewall;
 import ru.spbstu.telematics.lukash.netcenticsystem.model.TVC;
 
 public interface ConnectionDistributor {
+
+  static final Firewall[] firewalls = World.getFirewalls();
+  
   /**
    * Distribites connections between firewalls
    * 
@@ -13,9 +17,9 @@ public interface ConnectionDistributor {
    * @param connectionsSortedDown  unmodifiable sorted set of connections from big to small
    * @param firewalls array of firewalls
    * @param newCon new connection in net centric system
-   * @return time in milliseconds
+   * @return calculated dispersion
    */
-  long distribute(final SortedSet<TVC> connectionsSortedUp, SortedSet<TVC> connectionsSortedDown, final Firewall[] firewalls, TVC newCon);
+  double distribute(final SortedSet<TVC> connectionsSortedUp, SortedSet<TVC> connectionsSortedDown, TVC newCon);
   
   /**
    * @return the name of applied algorithm

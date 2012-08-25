@@ -1,6 +1,6 @@
 package ru.spbstu.telematics.lukash.netcenticsystem.model;
 
-public class TVC implements Comparable<TVC> {
+public class TVC implements Comparable<TVC>, Cloneable {
   
   private Double intencity;
 
@@ -25,13 +25,8 @@ public class TVC implements Comparable<TVC> {
 
   public void setFirewallIndexes(int idx1, int idx2) {
     // keep the order of numbers
-    if (idx1 > idx2) {
-      this.firewallId1=idx2;
-      this.firewallId2 = idx1;
-    } else {
-      this.firewallId1=idx1;
-      this.firewallId2 = idx2;
-    }
+    idx1 = Math.min(idx1, idx2);
+    idx2 = Math.max(idx1, idx2);
   }
 
   public int getFirewallId1() {
@@ -48,7 +43,7 @@ public class TVC implements Comparable<TVC> {
     return managerFirewallId;
   }
 
-  public void setManagerFirewallId(int managerFirewallId) {
+  protected void setManagerFirewallId(int managerFirewallId) {
     this.managerFirewallId = managerFirewallId;
   }
 
@@ -71,5 +66,9 @@ public class TVC implements Comparable<TVC> {
   public boolean mightBeManagedBy(int firewallId) {
     return firewallId == firewallId1 || firewallId == firewallId2;
   }
-
+  
+  @Override
+  public Object clone() throws CloneNotSupportedException {
+    return super.clone();
+  }
 }

@@ -1,5 +1,7 @@
 package ru.spbstu.telematics.lukash.netcenticsystem;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Random;
@@ -7,6 +9,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.ConnectionDistributor;
+import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.FullDistributor;
 import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.GreedyAlgorithmFromScratchDown;
 import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.GreedyAlgorithmFromScratchUp;
 import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.RandomDistributor;
@@ -15,7 +18,8 @@ import ru.spbstu.telematics.lukash.netcenticsystem.model.TVC;
 
 public class World {
 
-  private static final int MAX_CONNECTIONS = 100;
+  private static final String OUTPUT_FOLDER = "/home/lukash/tmp/modelling";
+  private static final int MAX_CONNECTIONS = 10000;
   private static final int NUM_FIREWALLS = 10;
 
   private final static Firewall[] firewalls = new Firewall[NUM_FIREWALLS];
@@ -40,49 +44,64 @@ public class World {
   private final ConnectionDistributor[] distributor = new ConnectionDistributor[] { 
                                                           new RandomDistributor(), 
                                                           new GreedyAlgorithmFromScratchUp(), 
-                                                          new GreedyAlgorithmFromScratchDown() 
+                                                          new GreedyAlgorithmFromScratchDown(),
+                                                          new FullDistributor()
                                                       };
   private final Random r = new Random();
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws IOException {
     new World().live();
   }
 
-  private void live() {
+  private void live() throws IOException {
 
     long start = System.currentTimeMillis();
     
+    FileWriter wr = new FileWriter(OUTPUT_FOLDER + "/model" + System.currentTimeMillis() + ".csv");
+    
+    StringBuilder b = new StringBuilder();
+    b.append("#,");
     // Print header
-    System.out.print("#,");
     for (ConnectionDistributor d : distributor) {
-      System.out.print("Dispersion of " + d.getName() + ", Time " + d.getName());
+      b.append("Dispersion of ").append(d.getName()).append(',')/*.append("Time ").append(d.getName())*/;
     }
-    System.out.println();
+    
+    writeMsg(wr, b.toString());
 
     // Generate connections
     for (int i = 0; i < MAX_CONNECTIONS; i++) {
       TVC con = generateTVC();
 
-      StringBuilder b = new StringBuilder();
+      b = new StringBuilder();
       b.append(i + 1);
 
       for (ConnectionDistributor d : distributor) {
         // select firewall
-        long t = d.distribute(Collections.unmodifiableSortedSet(connectionsSortedUp), Collections.unmodifiableSortedSet(connectionsSortedDown), firewalls, con);
+        long t = System.currentTimeMillis();
+        double dispersion = d.distribute(Collections.unmodifiableSortedSet(connectionsSortedUp), Collections.unmodifiableSortedSet(connectionsSortedDown), con);
+        t = System.currentTimeMillis() - t;
         // run state tests
-        validate();
+        validateModel();
         // calculate dispersion
-        double dispersion = Firewall.dispersion();
-        b.append(',').append(dispersion).append(',').append(t);
+        b.append(',').append(dispersion)/*.append(',').append(t)*/;
       }
-      System.out.println(b.toString());
+      writeMsg(wr, b.toString());
     }
-    System.out.println("DONE. Modelling time=" + (System.currentTimeMillis() - start));
+    writeMsg(wr, "DONE. Modelling time=" + (System.currentTimeMillis() - start));
+    
+    wr.flush();
+    wr.close();
   }
 
 
 
-  private void validate() {
+  private void writeMsg(FileWriter wr, String msg) throws IOException {
+//    System.out.println(msg);
+    wr.write(msg);
+    wr.write('\n');
+  }
+
+  private void validateModel() {
     for (TVC c : connectionsSortedUp) {
       if (!c.validate()) {
         throw new RuntimeException("Validation failed: connection is managed by wrong firewall, c=" + c);
@@ -95,11 +114,10 @@ public class World {
         }
       }
     }
-
   }
 
   /**
-   * Generates connection between two randomly selected <b>different</b> firewalls
+   * Generates connection between two rabndomly selected <b>different</b> firewalls
    * @return connection object
    */
   private TVC generateTVC() {
