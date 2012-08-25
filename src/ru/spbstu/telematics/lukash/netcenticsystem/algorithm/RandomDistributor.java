@@ -11,11 +11,11 @@ public class RandomDistributor implements ConnectionDistributor {
   private static final String NAME = "random algorithm";
 
   @Override
-  public long distribute(SortedSet<TVC> connections, Firewall[] firewalls, TVC newCon) {
+  public long distribute(SortedSet<TVC> connectionsSortedUp, SortedSet<TVC> connectionsSortedDown, Firewall[] firewalls, TVC newCon) {
     long start = System.currentTimeMillis();
     Random r = new Random();
     // forget about all links and redistribute connections from scratch
-    for (TVC c : connections) {
+    for (TVC c : connectionsSortedUp) {
       int managerFirewallId = r.nextBoolean() ? c.getFirewallId1() : c.getFirewallId2();
       firewalls[managerFirewallId].manageConnection(c);
     }

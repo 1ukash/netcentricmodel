@@ -1,12 +1,14 @@
 package ru.spbstu.telematics.lukash.netcenticsystem;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Random;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.ConnectionDistributor;
-import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.GreedyAlgorithmFromScratch;
+import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.GreedyAlgorithmFromScratchDown;
+import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.GreedyAlgorithmFromScratchUp;
 import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.RandomDistributor;
 import ru.spbstu.telematics.lukash.netcenticsystem.model.Firewall;
 import ru.spbstu.telematics.lukash.netcenticsystem.model.TVC;
@@ -24,8 +26,22 @@ public class World {
     }
   }
 
-  private SortedSet<TVC> connections = new TreeSet<>();
-  private final ConnectionDistributor[] distributor = new ConnectionDistributor[] { new RandomDistributor(), new GreedyAlgorithmFromScratch() };
+  private SortedSet<TVC> connectionsSortedUp = new TreeSet<>();
+  private SortedSet<TVC> connectionsSortedDown = new TreeSet<>(new Comparator<TVC>() {
+
+    @Override
+    public int compare(TVC o1, TVC o2) {
+      return o2.compareTo(o1);
+    }
+  
+  });
+  
+  
+  private final ConnectionDistributor[] distributor = new ConnectionDistributor[] { 
+                                                          new RandomDistributor(), 
+                                                          new GreedyAlgorithmFromScratchUp(), 
+                                                          new GreedyAlgorithmFromScratchDown() 
+                                                      };
   private final Random r = new Random();
 
   public static void main(String[] args) {
@@ -52,7 +68,7 @@ public class World {
 
       for (ConnectionDistributor d : distributor) {
         // select firewall
-        long t = d.distribute(Collections.unmodifiableSortedSet(connections), firewalls, con);
+        long t = d.distribute(Collections.unmodifiableSortedSet(connectionsSortedUp), Collections.unmodifiableSortedSet(connectionsSortedDown), firewalls, con);
         // run state tests
         validate();
         // calculate dispersion
@@ -67,7 +83,7 @@ public class World {
 
 
   private void validate() {
-    for (TVC c : connections) {
+    for (TVC c : connectionsSortedUp) {
       if (!c.validate()) {
         throw new RuntimeException("Validation failed: connection is managed by wrong firewall, c=" + c);
       }
@@ -98,7 +114,8 @@ public class World {
     } while (idx2 == idx1);
 
     tvc.setFirewallIndexes(idx1, idx2);
-    connections.add(tvc);
+    connectionsSortedUp.add(tvc);
+    connectionsSortedDown.add(tvc);
     firewalls[tvc.getFirewallId1()].addConnection(tvc);
     firewalls[tvc.getFirewallId2()].addConnection(tvc);
     
