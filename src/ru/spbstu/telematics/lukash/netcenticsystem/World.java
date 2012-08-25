@@ -6,6 +6,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.ConnectionDistributor;
+import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.GreedyAlgorithmFromScratch;
 import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.RandomDistributor;
 import ru.spbstu.telematics.lukash.netcenticsystem.model.Firewall;
 import ru.spbstu.telematics.lukash.netcenticsystem.model.TVC;
@@ -24,7 +25,7 @@ public class World {
   }
 
   private SortedSet<TVC> connections = new TreeSet<>();
-  private final ConnectionDistributor[] distributor = new ConnectionDistributor[] { new RandomDistributor() };
+  private final ConnectionDistributor[] distributor = new ConnectionDistributor[] { new RandomDistributor(), new GreedyAlgorithmFromScratch() };
   private final Random r = new Random();
 
   public static void main(String[] args) {
@@ -34,6 +35,7 @@ public class World {
   private void live() {
 
     long start = System.currentTimeMillis();
+    
     // Print header
     System.out.print("#,");
     for (ConnectionDistributor d : distributor) {
@@ -41,12 +43,9 @@ public class World {
     }
     System.out.println();
 
+    // Generate connections
     for (int i = 0; i < MAX_CONNECTIONS; i++) {
       TVC con = generateTVC();
-
-      connections.add(con);
-      firewalls[con.getFirewallId1()].addConnection(con);
-      firewalls[con.getFirewallId2()].addConnection(con);
 
       StringBuilder b = new StringBuilder();
       b.append(i + 1);
@@ -62,7 +61,7 @@ public class World {
       }
       System.out.println(b.toString());
     }
-    System.out.println("DONE. Modelling time=" + (System.currentTimeMillis() -start));
+    System.out.println("DONE. Modelling time=" + (System.currentTimeMillis() - start));
   }
 
 
@@ -70,7 +69,7 @@ public class World {
   private void validate() {
     for (TVC c : connections) {
       if (!c.validate()) {
-        throw new RuntimeException("Validation failed: connection is managed by wrong firewall");
+        throw new RuntimeException("Validation failed: connection is managed by wrong firewall, c=" + c);
       }
 
       int managedFw = c.getManagerFirewallId();
@@ -84,7 +83,7 @@ public class World {
   }
 
   /**
-   * generates connection between two randomly selected firewalls
+   * Generates connection between two randomly selected <b>different</b> firewalls
    * @return connection object
    */
   private TVC generateTVC() {
@@ -96,9 +95,13 @@ public class World {
 
     do {
       idx2 = r.nextInt(firewalls.length);
-    } while (idx2 != idx1);
+    } while (idx2 == idx1);
 
     tvc.setFirewallIndexes(idx1, idx2);
+    connections.add(tvc);
+    firewalls[tvc.getFirewallId1()].addConnection(tvc);
+    firewalls[tvc.getFirewallId2()].addConnection(tvc);
+    
     return tvc;
   }
 

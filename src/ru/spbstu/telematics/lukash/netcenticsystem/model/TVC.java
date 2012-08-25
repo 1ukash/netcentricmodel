@@ -24,8 +24,14 @@ public class TVC implements Comparable<TVC> {
   }
 
   public void setFirewallIndexes(int idx1, int idx2) {
-    this.firewallId1=idx1;
-    this.firewallId2 = idx2;
+    // keep the order of numbers
+    if (idx1 > idx2) {
+      this.firewallId1=idx2;
+      this.firewallId2 = idx1;
+    } else {
+      this.firewallId1=idx1;
+      this.firewallId2 = idx2;
+    }
   }
 
   public int getFirewallId1() {
@@ -59,6 +65,11 @@ public class TVC implements Comparable<TVC> {
   @Override
   public String toString() {
     return "{" + "intencity=" + intencity + ",fw1=" + firewallId1 +",fw2=" + firewallId2 + ",managerFw=" + managerFirewallId + "}";
+  }
+
+
+  public boolean mightBeManagedBy(int firewallId) {
+    return firewallId == firewallId1 || firewallId == firewallId2;
   }
 
 }

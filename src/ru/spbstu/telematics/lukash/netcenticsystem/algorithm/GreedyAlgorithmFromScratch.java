@@ -12,10 +12,25 @@ public class GreedyAlgorithmFromScratch implements ConnectionDistributor {
   @Override
   public long distribute(SortedSet<TVC> connections, Firewall[] firewalls, TVC newCon) {
     long t = System.currentTimeMillis();
-    
-    double average = Firewall.getFirewallsAverageIntencity();
+
     for (TVC c : connections) {
+      Firewall min = null;
+      int i;
+      //select first appropriate
+      for (i = 0; i < firewalls.length; i++) {
+        if (c.mightBeManagedBy(i)) {
+          min = firewalls[i];
+          break;
+        }
+      }
       
+      // continue and find most optimal
+      for (i = i + 1; i < firewalls.length; i++) {
+        if (firewalls[i].getManagedIntencity() < min.getManagedIntencity() && c.mightBeManagedBy(i)) {
+          min = firewalls[i];
+        }
+      }
+      min.manageConnection(c);
     }
     return System.currentTimeMillis() - t;
   }
