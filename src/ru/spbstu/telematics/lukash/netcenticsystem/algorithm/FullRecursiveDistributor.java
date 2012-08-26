@@ -5,17 +5,21 @@ import java.util.SortedSet;
 import ru.spbstu.telematics.lukash.netcenticsystem.model.Firewall;
 import ru.spbstu.telematics.lukash.netcenticsystem.model.TVC;
 
-public class FullDistributor extends ConnectionDistributor {
+public class FullRecursiveDistributor extends ConnectionDistributor {
 
-  private static final String NAME = "full distribution";
+  private static final String NAME = "full distribution (recursive)";
+  private long stepsCount;
 
   @Override
   public double distribute(TVC newCon) {
     try {
+      stepsCount = 0;
       SortedSet<TVC> conns = environment.getConnectionsSortedUp();
       return walkThrough(conns.toArray(new TVC[conns.size()]), environment.getFirewalls());
     } catch (Exception e) {
       throw new RuntimeException("fatal error", e);
+    } finally {
+//      System.err.println("Steps count:" + stepsCount);
     }
   }
   
@@ -36,6 +40,7 @@ public class FullDistributor extends ConnectionDistributor {
         d1 = walkThrough(subset, firewalls);
       } else {
         d1 = environment.dispersion();
+        stepsCount ++;
       }
       
       //right branch
@@ -44,6 +49,7 @@ public class FullDistributor extends ConnectionDistributor {
         d2 = walkThrough(subset, firewalls);
       } else {
         d2 = environment.dispersion();
+        stepsCount ++;
       }
     }
     
