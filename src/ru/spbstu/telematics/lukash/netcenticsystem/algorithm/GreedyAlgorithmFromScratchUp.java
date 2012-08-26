@@ -5,7 +5,7 @@ import java.util.SortedSet;
 import ru.spbstu.telematics.lukash.netcenticsystem.model.Firewall;
 import ru.spbstu.telematics.lukash.netcenticsystem.model.TVC;
 
-public class GreedyAlgorithmFromScratchUp implements ConnectionDistributor {
+public class GreedyAlgorithmFromScratchUp extends ConnectionDistributor {
 
   private static final String NAME = "greedy redistribution (sorted up)";
 
@@ -13,11 +13,12 @@ public class GreedyAlgorithmFromScratchUp implements ConnectionDistributor {
    * Distributes connections using greedy algorithm, connections sorted from small to big capacity
    */
   @Override
-  public double distribute(SortedSet<TVC> connectionsSortedUp, SortedSet<TVC> connectionsSortedDown, TVC newCon) {
-    return distribute(connectionsSortedUp, newCon);
+  public double distribute(TVC newCon) {
+    return distribute(environment.getConnectionsSortedUp(), newCon);
   }
   
   protected double distribute(SortedSet<TVC> somehowSortedConnections, TVC newCon) {
+    Firewall[] firewalls = environment.getFirewalls();
     for (TVC c : somehowSortedConnections) {
       Firewall min = null;
       int i;
@@ -37,7 +38,7 @@ public class GreedyAlgorithmFromScratchUp implements ConnectionDistributor {
       }
       min.manageConnection(c);
     }
-    return Firewall.dispersion();
+    return environment.dispersion();
   }
 
   @Override

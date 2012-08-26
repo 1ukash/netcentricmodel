@@ -1,7 +1,5 @@
 package ru.spbstu.telematics.lukash.netcenticsystem.algorithm;
 
-import java.util.SortedSet;
-
 import ru.spbstu.telematics.lukash.netcenticsystem.model.TVC;
 
 public class GreedyAlgorithmFromScratchDown extends GreedyAlgorithmFromScratchUp {
@@ -12,8 +10,8 @@ public class GreedyAlgorithmFromScratchDown extends GreedyAlgorithmFromScratchUp
    * Distributes connections using greedy algorithm, connections sorted from small to big capacity
    */
   @Override
-  public double distribute(SortedSet<TVC> connectionsSortedUp, SortedSet<TVC> connectionsSortedDown, TVC newCon) {
-    return distribute(connectionsSortedDown, newCon);
+  public double distribute(TVC newCon) {
+    return distribute(environment.getConnectionsSortedDown(), newCon);
   }
 
   @Override

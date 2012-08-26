@@ -1,25 +1,25 @@
 package ru.spbstu.telematics.lukash.netcenticsystem.algorithm;
 
 import java.util.Random;
-import java.util.SortedSet;
 
 import ru.spbstu.telematics.lukash.netcenticsystem.model.Firewall;
 import ru.spbstu.telematics.lukash.netcenticsystem.model.TVC;
 
-public class RandomDistributor implements ConnectionDistributor {
+public class RandomDistributor extends ConnectionDistributor {
 
   private static final String NAME = "random algorithm";
 
   @Override
-  public double distribute(SortedSet<TVC> connectionsSortedUp, SortedSet<TVC> connectionsSortedDown, TVC newCon) {
+  public double distribute(TVC newCon) {
     Random r = new Random();
+    Firewall[] firewalls = environment.getFirewalls();
     // forget about all links and redistribute connections from scratch
-    for (TVC c : connectionsSortedUp) {
+    for (TVC c : environment.getConnectionsSortedUp()) {
       int managerFirewallId = r.nextBoolean() ? c.getFirewallId1() : c.getFirewallId2();
       firewalls[managerFirewallId].manageConnection(c);
     }
     
-    return Firewall.dispersion();
+    return environment.dispersion();
   }
 
   @Override

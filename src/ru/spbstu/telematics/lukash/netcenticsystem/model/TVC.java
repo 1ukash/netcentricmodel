@@ -13,11 +13,20 @@ public class TVC implements Comparable<TVC>, Cloneable {
    * manager firewall
    */
   private int managerFirewallId = Firewall.NO_FIREWALL;
+  
+  /**
+   * The unique id
+   */
+  private int id;
 
-  public TVC(double intencity) {
+  public TVC(int id, double intencity) {
+    this.id = id;
     this.intencity = intencity;
   }
 
+  public int getId() {
+    return id;
+  }
 
   public double getIntencity() {
     return intencity;
@@ -25,8 +34,8 @@ public class TVC implements Comparable<TVC>, Cloneable {
 
   public void setFirewallIndexes(int idx1, int idx2) {
     // keep the order of numbers
-    idx1 = Math.min(idx1, idx2);
-    idx2 = Math.max(idx1, idx2);
+    firewallId1 = Math.min(idx1, idx2);
+    firewallId2 = Math.max(idx1, idx2);
   }
 
   public int getFirewallId1() {
@@ -59,7 +68,7 @@ public class TVC implements Comparable<TVC>, Cloneable {
   
   @Override
   public String toString() {
-    return "{" + "intencity=" + intencity + ",fw1=" + firewallId1 +",fw2=" + firewallId2 + ",managerFw=" + managerFirewallId + "}";
+    return "{id=" + id + ",intencity=" + intencity + ",fw1=" + firewallId1 +",fw2=" + firewallId2 + ",managerFw=" + managerFirewallId + "}";
   }
 
 
@@ -68,7 +77,22 @@ public class TVC implements Comparable<TVC>, Cloneable {
   }
   
   @Override
-  public Object clone() throws CloneNotSupportedException {
-    return super.clone();
+  public TVC clone() throws CloneNotSupportedException {
+    return (TVC) super.clone();
+  }
+  
+  @Override
+  public int hashCode() {
+    return id;
+  }
+  
+  @Override
+  public boolean equals(Object obj) {
+    
+    if (!(obj instanceof TVC)) {
+      return false;
+    }
+    
+    return id == ((TVC) obj).id;
   }
 }

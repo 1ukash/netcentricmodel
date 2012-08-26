@@ -2,58 +2,46 @@ package ru.spbstu.telematics.lukash.netcenticsystem;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Random;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.ConnectionDistributor;
 import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.FullDistributor;
 import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.GreedyAlgorithmFromScratchDown;
 import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.GreedyAlgorithmFromScratchUp;
 import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.RandomDistributor;
-import ru.spbstu.telematics.lukash.netcenticsystem.model.Firewall;
+import ru.spbstu.telematics.lukash.netcenticsystem.model.Environment;
 import ru.spbstu.telematics.lukash.netcenticsystem.model.TVC;
 
 public class World {
 
   private static final String OUTPUT_FOLDER = "/home/lukash/tmp/modelling";
   private static final int MAX_CONNECTIONS = 10000;
-  private static final int NUM_FIREWALLS = 10;
+  public static final int NUM_FIREWALLS = 10;
 
-  private final static Firewall[] firewalls = new Firewall[NUM_FIREWALLS];
   
-  static {
-    for (int i = 0; i < firewalls.length; i++) {
-      firewalls[i] = new Firewall(i);
-    }
-  }
-
-  private SortedSet<TVC> connectionsSortedUp = new TreeSet<>();
-  private SortedSet<TVC> connectionsSortedDown = new TreeSet<>(new Comparator<TVC>() {
-
-    @Override
-    public int compare(TVC o1, TVC o2) {
-      return o2.compareTo(o1);
-    }
-  
-  });
-  
-  
-  private final ConnectionDistributor[] distributor = new ConnectionDistributor[] { 
+  private final ConnectionDistributor[] distributors = new ConnectionDistributor[] { 
                                                           new RandomDistributor(), 
                                                           new GreedyAlgorithmFromScratchUp(), 
                                                           new GreedyAlgorithmFromScratchDown(),
                                                           new FullDistributor()
                                                       };
   private final Random r = new Random();
+  private Environment[] environments;
+  
+  
+  public World() {
+    environments = new Environment[distributors.length];
+    for (int i = 0; i< environments.length; i++) {
+      environments[i] = new Environment();
+      distributors[i].setEnvironment(environments[i]);
+    }
+  }
 
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) throws Exception {
     new World().live();
   }
 
-  private void live() throws IOException {
+  private void live() throws Exception {
 
     long start = System.currentTimeMillis();
     
@@ -62,7 +50,7 @@ public class World {
     StringBuilder b = new StringBuilder();
     b.append("#,");
     // Print header
-    for (ConnectionDistributor d : distributor) {
+    for (ConnectionDistributor d : distributors) {
       b.append("Dispersion of ").append(d.getName()).append(',')/*.append("Time ").append(d.getName())*/;
     }
     
@@ -70,18 +58,18 @@ public class World {
 
     // Generate connections
     for (int i = 0; i < MAX_CONNECTIONS; i++) {
-      TVC con = generateTVC();
+      TVC con = generateTVC(i + 1);
 
       b = new StringBuilder();
       b.append(i + 1);
 
-      for (ConnectionDistributor d : distributor) {
+      for (ConnectionDistributor d : distributors) {
         // select firewall
         long t = System.currentTimeMillis();
-        double dispersion = d.distribute(Collections.unmodifiableSortedSet(connectionsSortedUp), Collections.unmodifiableSortedSet(connectionsSortedDown), con);
+        double dispersion = d.distribute(con);
         t = System.currentTimeMillis() - t;
         // run state tests
-        validateModel();
+        d.getEnvironment().validateModel();
         // calculate dispersion
         b.append(',').append(dispersion)/*.append(',').append(t)*/;
       }
@@ -93,54 +81,33 @@ public class World {
     wr.close();
   }
 
-
-
   private void writeMsg(FileWriter wr, String msg) throws IOException {
-//    System.out.println(msg);
+    System.out.println(msg);
     wr.write(msg);
     wr.write('\n');
-  }
-
-  private void validateModel() {
-    for (TVC c : connectionsSortedUp) {
-      if (!c.validate()) {
-        throw new RuntimeException("Validation failed: connection is managed by wrong firewall, c=" + c);
-      }
-
-      int managedFw = c.getManagerFirewallId();
-      for (Firewall fw : firewalls) {
-        if (fw.getId() != managedFw && fw.isManagesConnection(c)) {
-          throw new RuntimeException("Validation failed: Two firewall manages one connection: " + managedFw + ", " + fw.getId());
-        }
-      }
-    }
   }
 
   /**
    * Generates connection between two rabndomly selected <b>different</b> firewalls
    * @return connection object
+   * @throws CloneNotSupportedException 
    */
-  private TVC generateTVC() {
-    TVC tvc = new TVC(r.nextDouble());
+  private TVC generateTVC(int id) throws CloneNotSupportedException {
+    TVC tvc = new TVC(id, r.nextDouble());
 
     int idx1, idx2;
 
-    idx1 = r.nextInt(firewalls.length);
+    idx1 = r.nextInt(NUM_FIREWALLS);
 
     do {
-      idx2 = r.nextInt(firewalls.length);
+      idx2 = r.nextInt(NUM_FIREWALLS);
     } while (idx2 == idx1);
 
     tvc.setFirewallIndexes(idx1, idx2);
-    connectionsSortedUp.add(tvc);
-    connectionsSortedDown.add(tvc);
-    firewalls[tvc.getFirewallId1()].addConnection(tvc);
-    firewalls[tvc.getFirewallId2()].addConnection(tvc);
     
+    for (Environment e : environments) {
+      e.addTVC(tvc.clone()); //TODO probably avoid clone in the fututure?
+    }
     return tvc;
-  }
-
-  public static Firewall[] getFirewalls() {
-    return firewalls;
   }
 }

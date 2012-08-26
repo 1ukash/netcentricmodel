@@ -2,17 +2,9 @@ package ru.spbstu.telematics.lukash.netcenticsystem.model;
 import java.util.HashSet;
 import java.util.Set;
 
-import ru.spbstu.telematics.lukash.netcenticsystem.World;
-
-
-public class Firewall {
+public class Firewall implements Cloneable {
   public static final int NO_FIREWALL = -1;
 
-  /**
-   * These connections are going through this firewall
-   */
-  private Set<TVC> connections = new HashSet<>();
-  
   /**
    * Subset of connections which this firewall manages
    */
@@ -28,17 +20,15 @@ public class Firewall {
    */
   private final int id;
 
-  /**
-   * Other firewalls in net centric system
-   */
-  private final static Firewall[] firewalls = World.getFirewalls();
-  
+  private final Environment environment;
+
   /**
    * Initializes firewall by capacity=1000
-   * @param firewalls 
+   * @param environment 
    */
-  public Firewall(int id) {
+  public Firewall(int id, Environment environment) {
     this.id = id;
+    this.environment = environment;
   }
 
   public double recalculateAndGetManagedIntensity() {
@@ -53,20 +43,21 @@ public class Firewall {
     return managedIntencity;
   }
 
-  public void addConnection(TVC con) {
-    connections.add(con);
-  }
   
   /**
    * Method assigns connection to current firewall
    * @param con connection object
    */
   public void manageConnection(TVC con) {
-    if (con.getManagerFirewallId() != NO_FIREWALL) { //somebody managed this connection before
-      firewalls[con.getManagerFirewallId()].removeManagedConnection(con);
+    manageConnection(con, environment.getFirewalls(), true);
+  }
+  
+  public void manageConnection(TVC con, Firewall[] fws, boolean validate) {
+    if (validate && con.getManagerFirewallId() != NO_FIREWALL) { //somebody managed this connection before
+      fws[con.getManagerFirewallId()].removeManagedConnection(con);
     }
     
-    connections.add(con);
+    managedConnections.add(con);
     con.setManagerFirewallId(this.id);
     managedIntencity += con.getIntencity();
   }
@@ -76,10 +67,10 @@ public class Firewall {
    * @param con
    */
   public void removeManagedConnection(TVC con) {
-    boolean wasInList = connections.remove(con);
+    boolean wasInList = managedConnections.remove(con);
     
     if(!wasInList) {
-      throw new RuntimeException("Tried to remove connection which wasn't in list for firerewall: con=" + con +" fw=" +this);
+      throw new RuntimeException("Tried to remove connection which wasn't in list for firewall: con=" + con +" fw=" +this);
     }
     
     managedIntencity -= con.getIntencity();
@@ -99,28 +90,12 @@ public class Firewall {
     return "{id=" + id +"}";
   }
   
-  public static double getFirewallsAverageIntencity() {
+  static double getFirewallsAverageIntencity(Firewall[] fws) {
     double average = 0;
-    for (Firewall fw : firewalls) {
+    for (Firewall fw : fws) {
       average += fw.getManagedIntencity();
     }
-    average /= firewalls.length;
+    average /= fws.length;
     return average;
-  }
-  
-  /**
-   * Calculates dispersion of firewalls workload
-   * 
-   * @return
-   */
-  public static double dispersion() {
-
-    double average = Firewall.getFirewallsAverageIntencity();
-
-    double d = 0;
-    for (Firewall fw : firewalls) {
-      d += Math.pow(fw.getManagedIntencity() - average, 2);
-    }
-    return d / firewalls.length;
   }
 }
