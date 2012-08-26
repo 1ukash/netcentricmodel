@@ -63,7 +63,7 @@ public class Environment {
    * @return
    */
   private static double dispersion(Firewall[] fws) {
-    double average = Firewall.getFirewallsAverageIntencity(fws);
+    double average = getFirewallsAverageIntencity(fws);
     
     double d = 0;
     for (Firewall fw : fws) {
@@ -72,7 +72,20 @@ public class Environment {
     return d / fws.length;
   }
   
+  private static double getFirewallsAverageIntencity(Firewall[] fws) {
+    double average = 0;
+    for (Firewall fw : fws) {
+      average += fw.getManagedIntencity();
+    }
+    average /= fws.length;
+    return average;
+  }
+  
   public double dispersion() {
     return dispersion(firewalls);
+  }
+  
+  public double getFirewallsAverageIntencity() {
+    return getFirewallsAverageIntencity(firewalls);
   }
 }

@@ -5,9 +5,10 @@ import java.io.IOException;
 import java.util.Random;
 
 import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.ConnectionDistributor;
-import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.FullRecursiveDistributor;
 import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.GreedyAlgorithmFromScratchDown;
 import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.GreedyAlgorithmFromScratchUp;
+import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.GreedyBetweenTwoDistributor;
+import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.GreedySingleConnectionDistributor;
 import ru.spbstu.telematics.lukash.netcenticsystem.algorithm.RandomDistributor;
 import ru.spbstu.telematics.lukash.netcenticsystem.model.Environment;
 import ru.spbstu.telematics.lukash.netcenticsystem.model.TVC;
@@ -23,7 +24,9 @@ public class World {
                                                           new RandomDistributor(), 
                                                           new GreedyAlgorithmFromScratchUp(), 
                                                           new GreedyAlgorithmFromScratchDown(),
-                                                          new FullRecursiveDistributor()
+//                                                          new FullRecursiveDistributor()
+                                                          new GreedyBetweenTwoDistributor(),
+                                                          new GreedySingleConnectionDistributor(),
                                                       };
   private final Random r = new Random();
   private Environment[] environments;

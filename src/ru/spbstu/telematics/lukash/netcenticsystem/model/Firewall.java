@@ -52,7 +52,7 @@ public class Firewall implements Cloneable {
     manageConnection(con, environment.getFirewalls(), true);
   }
   
-  public void manageConnection(TVC con, Firewall[] fws, boolean validate) {
+  private void manageConnection(TVC con, Firewall[] fws, boolean validate) {
     if (validate && con.getManagerFirewallId() != NO_FIREWALL) { //somebody managed this connection before
       fws[con.getManagerFirewallId()].removeManagedConnection(con);
     }
@@ -88,14 +88,5 @@ public class Firewall implements Cloneable {
   @Override
   public String toString() {
     return "{id=" + id +"}";
-  }
-  
-  static double getFirewallsAverageIntencity(Firewall[] fws) {
-    double average = 0;
-    for (Firewall fw : fws) {
-      average += fw.getManagedIntencity();
-    }
-    average /= fws.length;
-    return average;
   }
 }

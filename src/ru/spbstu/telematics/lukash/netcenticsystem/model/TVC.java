@@ -77,8 +77,12 @@ public class TVC implements Comparable<TVC>, Cloneable {
   }
   
   @Override
-  public TVC clone() throws CloneNotSupportedException {
-    return (TVC) super.clone();
+  public TVC clone() {
+    try {
+      return (TVC) super.clone();
+    } catch (CloneNotSupportedException e) {
+      throw new RuntimeException("fatal", e);
+    }
   }
   
   @Override
