@@ -106,7 +106,7 @@ public class World {
     tvc.setFirewallIndexes(idx1, idx2);
     
     for (Environment e : environments) {
-      e.addTVC(tvc.clone()); //TODO probably avoid clone in the fututure?
+      e.addTVC(tvc.clone()); //TODO probably avoid clone in the future?
     }
     return tvc;
   }
